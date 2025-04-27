@@ -7,13 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TestResults } from "@/components/teacher/TestResults";
 import { formatDate, isTestActive, isTestPast, isTestUpcoming } from "@/lib/utils";
-import { tests, testSubmissions } from "@/lib/dummy-data";
+import { testSubmissions } from "@/lib/dummy-data";
 import { AlertCircle, Check, Clock } from "lucide-react";
-
+// import { useTest } from "@/context/testContext";
 export default function TestDetail() {
   const { testId } = useParams();
-  
-  const test = tests.find(t => t.id === testId);
+  // const { tests } = useTest(); // Get the tests from the context
+  const test = tests.find(t => t._id === testId);
   if (!test) {
     return <Navigate to="/teacher" replace />;
   }

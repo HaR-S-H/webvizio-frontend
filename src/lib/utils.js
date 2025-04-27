@@ -8,12 +8,14 @@ export function cn(...inputs) {
 
 // Format date to a human-readable format
 export const formatDate = (dateString) => {
-  const date = new Date(dateString)
+  // console.log("Received dateString:", dateString);
+  const date = new Date(dateString);
   return new Intl.DateTimeFormat('en-US', {
     dateStyle: 'medium',
     timeStyle: 'short'
-  }).format(date)
+  }).format(date);
 }
+
 
 // Check if a test is active based on current time
 export const isTestActive = (test) => {

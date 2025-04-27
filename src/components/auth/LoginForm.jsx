@@ -1,39 +1,37 @@
-
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useNavigate } from "react-router-dom"; // Assuming you're using react-router
+import { toast } from "sonner";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("student"); // Default to student role
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
-  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      const success = await login(email, password);
-      
-      if (!success) {
-        toast({
-          title: "Login Failed",
-          description: "Invalid email or password. Please try again.",
-          variant: "destructive",
-        });
+      const success = await login(email, password, role);
+      if (success) {
+        // Redirect based on role
+        if (role === "teacher") {
+          navigate("/teacher/dashboard");
+        } else {
+          navigate("/student/dashboard");
+        }
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "An error occurred. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -41,9 +39,15 @@ export function LoginForm() {
 
   // Demo accounts for easy login
   const demoAccounts = [
-    { email: "john.doe@example.com", role: "Teacher" },
-    { email: "jane.smith@example.com", role: "Student" },
+    { email: "teacher@example.com", role: "teacher", password: "password123" },
+    { email: "student@example.com", role: "student", password: "password123" },
   ];
+
+  const fillDemoCredentials = (account) => {
+    setEmail(account.email);
+    setPassword(account.password);
+    setRole(account.role);
+  };
 
   return (
     <div className="flex justify-center items-center min-h-[80vh]">
@@ -68,9 +72,7 @@ export function LoginForm() {
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-              </div>
+              <Label htmlFor="password">Password</Label>
               <Input 
                 id="password" 
                 type="password" 
@@ -79,16 +81,33 @@ export function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 required 
               />
-              <p className="text-xs text-muted-foreground">
-                (Any password will work for demo purposes)
-              </p>
             </div>
+            
+            <div className="space-y-2">
+              <Label>Account Type</Label>
+              <RadioGroup 
+                defaultValue="student" 
+                value={role}
+                onValueChange={setRole}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="student" id="student" />
+                  <Label htmlFor="student">Student</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="teacher" id="teacher" />
+                  <Label htmlFor="teacher">Teacher</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Sign In"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
+        <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-muted-foreground">
             Demo accounts
           </div>
@@ -98,7 +117,7 @@ export function LoginForm() {
                 key={index}
                 variant="outline"
                 className="text-xs"
-                onClick={() => setEmail(account.email)}
+                onClick={() => fillDemoCredentials(account)}
               >
                 {account.role}
               </Button>

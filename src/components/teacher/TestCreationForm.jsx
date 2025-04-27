@@ -8,21 +8,25 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { getDefaultTips } from "@/lib/utils";
-import { X, Upload, FileVideo, FileText } from "lucide-react";
+import { X, Upload, FileVideo, FileText, FileSpreadsheet } from "lucide-react";
+import { testApi } from "@/api/test";
 
-export function TestCreationForm({ onSuccess }) {
+export function TestCreationForm({ onSuccess, editMode = false, testData = null }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [language, setLanguage] = useState("html");
-  const [tips, setTips] = useState(getDefaultTips("html"));
+  const [language, setLanguage] = useState(editMode && testData ? testData.language : "html");
+  const [tips, setTips] = useState(editMode && testData ? testData.tips : getDefaultTips("html"));
   const [newTip, setNewTip] = useState("");
   const [pdfFile, setPdfFile] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
+  const [excelFile, setExcelFile] = useState(null);
 
   const handleLanguageChange = (value) => {
-    const lang = value ;
+    const lang = value;
     setLanguage(lang);
-    setTips(getDefaultTips(lang));
+    if (!editMode) {
+      setTips(getDefaultTips(lang));
+    }
   };
 
   const handleAddTip = () => {
@@ -62,12 +66,78 @@ export function TestCreationForm({ onSuccess }) {
     }
   };
 
+  const handleExcelUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file && (file.type === 'application/vnd.ms-excel' || 
+                 file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                 file.name.endsWith('.csv'))) {
+      setExcelFile(file);
+    } else {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an Excel or CSV file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const validateForm = (formData) => {
+    // Check if files are selected
+    if (!pdfFile) {
+      toast({
+        title: "Missing PDF file",
+        description: "Please upload instructions PDF",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!videoFile) {
+      toast({
+        title: "Missing video file",
+        description: "Please upload instruction video",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!excelFile) {
+      toast({
+        title: "Missing Excel file",
+        description: "Please upload student data Excel file",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    // Check start and end times
+    const startTime = new Date(formData.get("startTime"));
+    const endTime = new Date(formData.get("endTime"));
+    
+    if (endTime <= startTime) {
+      toast({
+        title: "Invalid time range",
+        description: "End time must be after start time",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
     const formData = new FormData(e.currentTarget);
-    const testData = {
+    
+    if (!validateForm(formData)) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    const testDataToSend = {
       name: formData.get("name"),
       repoUrl: formData.get("repoUrl"),
       language: language,
@@ -77,27 +147,41 @@ export function TestCreationForm({ onSuccess }) {
       endTime: formData.get("endTime"),
       instructionsPdf: pdfFile,
       instructionVideo: videoFile,
+      studentExcel: excelFile,
       tips: tips,
     };
     
-    // Simulate API delay
-    setTimeout(() => {
+    try {
+      if (editMode && testData?._id) {
+        await testApi.updateTest(testData._id, testDataToSend);
+        toast({
+          title: "Test Updated Successfully",
+          description: `${testDataToSend.name} has been updated.`,
+          variant: "default",
+        });
+      } else {
+        await testApi.createTest(testDataToSend);
+        toast({
+          title: "Test Created Successfully",
+          description: `${testDataToSend.name} has been created and is ready for students.`,
+          variant: "default",
+        });
+      }
+      
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error('Test creation/update failed:', error);
+    } finally {
       setIsSubmitting(false);
-      toast({
-        title: "Test Created Successfully",
-        description: `${testData.name} has been created and is ready for students.`,
-        variant: "default",
-      });
-      onSuccess();
-    }, 1500);
+    }
   };
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>Create New Assessment</CardTitle>
+        <CardTitle>{editMode ? "Edit Assessment" : "Create New Assessment"}</CardTitle>
         <CardDescription>
-          Set up a new coding test for your students
+          {editMode ? "Update your coding test" : "Set up a new coding test for your students"}
         </CardDescription>
       </CardHeader>
 
@@ -106,7 +190,13 @@ export function TestCreationForm({ onSuccess }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="name">Test Name</Label>
-              <Input id="name" name="name" placeholder="e.g. HTML Basics Assessment" required />
+              <Input 
+                id="name" 
+                name="name" 
+                placeholder="e.g. HTML Basics Assessment" 
+                required
+                defaultValue={editMode && testData ? testData.name : ""} 
+              />
             </div>
             
             <div className="space-y-2">
@@ -116,6 +206,7 @@ export function TestCreationForm({ onSuccess }) {
                 name="repoUrl" 
                 placeholder="e.g. https://github.com/username/repo" 
                 required 
+                defaultValue={editMode && testData ? testData.githubLink : ""}
               />
             </div>
           </div>
@@ -146,6 +237,7 @@ export function TestCreationForm({ onSuccess }) {
                 name="course" 
                 placeholder="e.g. Web Development Fundamentals" 
                 required 
+                defaultValue={editMode && testData ? testData.course : ""}
               />
             </div>
           </div>
@@ -160,6 +252,7 @@ export function TestCreationForm({ onSuccess }) {
                 min="1" 
                 placeholder="e.g. 100" 
                 required 
+                defaultValue={editMode && testData ? testData.maxMarks : ""}
               />
             </div>
             
@@ -170,6 +263,7 @@ export function TestCreationForm({ onSuccess }) {
                 name="startTime" 
                 type="datetime-local" 
                 required 
+                defaultValue={editMode && testData ? new Date(testData.startingTime).toISOString().slice(0, 16) : ""}
               />
             </div>
             
@@ -180,6 +274,7 @@ export function TestCreationForm({ onSuccess }) {
                 name="endTime" 
                 type="datetime-local" 
                 required 
+                defaultValue={editMode && testData ? new Date(testData.endingTime).toISOString().slice(0, 16) : ""}
               />
             </div>
           </div>
@@ -204,6 +299,11 @@ export function TestCreationForm({ onSuccess }) {
                   Uploaded: {pdfFile.name}
                 </p>
               )}
+              {editMode && testData?.pdfUrl && !pdfFile && (
+                <p className="text-sm text-muted-foreground">
+                  Current file: <a href={testData.pdfUrl} target="_blank" rel="noopener noreferrer" className="underline">View PDF</a>
+                </p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -225,6 +325,11 @@ export function TestCreationForm({ onSuccess }) {
                   Uploaded: {videoFile.name}
                 </p>
               )}
+              {editMode && testData?.videoUrl && !videoFile && (
+                <p className="text-sm text-muted-foreground">
+                  Current file: <a href={testData.videoUrl} target="_blank" rel="noopener noreferrer" className="underline">View Video</a>
+                </p>
+              )}
             </div>
           </div>
 
@@ -234,12 +339,19 @@ export function TestCreationForm({ onSuccess }) {
               <Input 
                 type="file" 
                 accept=".xlsx,.xls,.csv"
-                className="flex-1" 
+                className="flex-1"
+                onChange={handleExcelUpload}
               />
               <Button type="button" variant="outline">
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
                 Upload Excel
               </Button>
             </div>
+            {excelFile && (
+              <p className="text-sm text-muted-foreground">
+                Uploaded: {excelFile.name}
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               Upload an Excel sheet containing student data (name, email, roll number, section)
             </p>
@@ -286,7 +398,9 @@ export function TestCreationForm({ onSuccess }) {
           className="w-full"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Creating..." : "Create Assessment"}
+          {isSubmitting 
+            ? (editMode ? "Updating..." : "Creating...") 
+            : (editMode ? "Update Assessment" : "Create Assessment")}
         </Button>
       </CardFooter>
     </Card>

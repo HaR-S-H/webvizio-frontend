@@ -1,40 +1,58 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Layout } from "@/components/Layout";
 import { TestCard } from "@/components/teacher/TestCard";
 import { TestCreationForm } from "@/components/teacher/TestCreationForm";
-import { tests } from "@/lib/dummy-data";
 import { PlusCircle } from "lucide-react";
+import { testApi } from "@/api/test"; // Import the testApi to fetch data
 
 export default function TeacherDashboard() {
   const [showTestForm, setShowTestForm] = useState(false);
-  
-  const upcomingTests = tests.filter(test => {
+  const [teacherData, setTeacherData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchTeacherData() {
+      try {
+        const response = await testApi.getAllTests(); // Fetch the teacher's data from the API
+        console.log(response);
+
+        if (response.statusCode === 200) {
+          setTeacherData(response.data); // Store data on success
+        }
+      } catch (error) {
+        console.error("Error fetching teacher data", error);
+      } finally {
+        setLoading(false); // Turn off loading state
+      }
+    }
+
+    fetchTeacherData();
+  }, []);
+
+  if (loading) return <div>Loading...</div>; // Add loading state if data is still being fetched
+//   console.log(teacherData);
+    const activeTests = teacherData?.teacher?.ActiveTests || [];
+    const currActiveTests = activeTests.filter(test => {
+        const now = new Date();
+        const startTime = new Date(test.testId.startingTime);
+        const endTime = new Date(test.testId.endingTime);
+        return startTime < now  && endTime > now;
+      });
+  const upcomingTests = activeTests.filter(test => {
     const now = new Date();
-    const startTime = new Date(test.startTime);
+    const startTime = new Date(test.testId.startingTime);
     return startTime > now;
   });
-  
-  const activeTests = tests.filter(test => {
-    const now = new Date();
-    const startTime = new Date(test.startTime);
-    const endTime = new Date(test.endTime);
-    return now >= startTime && now <= endTime;
-  });
-  
-  const pastTests = tests.filter(test => {
-    const now = new Date();
-    const endTime = new Date(test.endTime);
-    return endTime < now;
-  });
-  
+
+  const pastTests = teacherData?.teacher?.oldTests || [];
+
   const handleTestCreationSuccess = () => {
-    setShowTestForm(false);
+    setShowTestForm(false); // Hide the test creation form after successful creation
   };
-  
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -54,7 +72,7 @@ export default function TeacherDashboard() {
             )}
           </Button>
         </div>
-        
+
         {showTestForm ? (
           <TestCreationForm onSuccess={handleTestCreationSuccess} />
         ) : (
@@ -63,82 +81,34 @@ export default function TeacherDashboard() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Tests</CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" />
-                    <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9" />
-                    <path d="M12 3v6" />
-                  </svg>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{tests.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Tests created
-                  </p>
+                  <div className="text-2xl font-bold">{currActiveTests.length+pastTests.length+upcomingTests.length}</div>
+                  <p className="text-xs text-muted-foreground">Tests created</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Active Tests</CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <path d="M12 2v6.5l5 3" />
-                    <circle cx="12" cy="14" r="8" />
-                  </svg>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{activeTests.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Currently active
-                  </p>
+                  <div className="text-2xl font-bold">{currActiveTests.length}</div>
+                  <p className="text-xs text-muted-foreground">Currently active</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Upcoming Tests</CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                    <line x1="16" x2="16" y1="2" y2="6" />
-                    <line x1="8" x2="8" y1="2" y2="6" />
-                    <line x1="3" x2="21" y1="10" y2="10" />
-                  </svg>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{upcomingTests.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Scheduled for future
-                  </p>
+                  <p className="text-xs text-muted-foreground">Scheduled for future</p>
                 </CardContent>
               </Card>
             </div>
-            
+
             <Tabs defaultValue="all" className="space-y-4">
               <TabsList>
                 <TabsTrigger value="all">All Tests</TabsTrigger>
@@ -146,37 +116,39 @@ export default function TeacherDashboard() {
                 <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
                 <TabsTrigger value="past">Past</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="all" className="space-y-4">
-                {tests.length === 0 ? (
+                {activeTests.length === 0 ? (
                   <div className="text-center py-10">
                     <h3 className="text-lg font-medium">No tests created yet</h3>
                     <p className="text-muted-foreground">Create your first test to get started</p>
                   </div>
                 ) : (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {tests.map(test => (
-                      <TestCard key={test.id} test={test} />
+                    {activeTests.map(test => (
+                      <TestCard key={test.testId._id} test={test.testId} />
                     ))}
                   </div>
                 )}
               </TabsContent>
-              
+
+              {/* Active Tests Tab */}
               <TabsContent value="active">
-                {activeTests.length === 0 ? (
+                {currActiveTests.length === 0 ? (
                   <div className="text-center py-10">
                     <h3 className="text-lg font-medium">No active tests</h3>
                     <p className="text-muted-foreground">You don't have any currently active tests</p>
                   </div>
                 ) : (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {activeTests.map(test => (
-                      <TestCard key={test.id} test={test} />
+                    {currActiveTests.map(test => (
+                      <TestCard key={test.testId._id} test={test.testId} />
                     ))}
                   </div>
                 )}
               </TabsContent>
-              
+
+              {/* Upcoming Tests Tab */}
               <TabsContent value="upcoming">
                 {upcomingTests.length === 0 ? (
                   <div className="text-center py-10">
@@ -186,12 +158,13 @@ export default function TeacherDashboard() {
                 ) : (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {upcomingTests.map(test => (
-                      <TestCard key={test.id} test={test} />
+                      <TestCard key={test.testId._id} test={test.testId} />
                     ))}
                   </div>
                 )}
               </TabsContent>
-              
+
+              {/* Past Tests Tab */}
               <TabsContent value="past">
                 {pastTests.length === 0 ? (
                   <div className="text-center py-10">
@@ -201,7 +174,7 @@ export default function TeacherDashboard() {
                 ) : (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {pastTests.map(test => (
-                      <TestCard key={test.id} test={test} />
+                      <TestCard key={test.testId._id} test={test.testId} />
                     ))}
                   </div>
                 )}

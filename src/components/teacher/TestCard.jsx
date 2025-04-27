@@ -40,11 +40,11 @@ export function TestCard({ test }) {
           </div>
           <div>
             <div className="text-muted-foreground">Start Time</div>
-            <div className="font-medium">{formatDate(test.startTime)}</div>
+            <div className="font-medium">{formatDate(test.startingTime)}</div>
           </div>
           <div>
             <div className="text-muted-foreground">End Time</div>
-            <div className="font-medium">{formatDate(test.endTime)}</div>
+            <div className="font-medium">{formatDate(test.endingTime)}</div>
           </div>
         </div>
         
@@ -63,7 +63,7 @@ export function TestCard({ test }) {
       </CardContent>
       <CardFooter>
         <Button asChild className="w-full">
-          <Link to={`/teacher/tests/${test.id}`}>View Details</Link>
+          <Link to={`/teacher/tests/${test._id}`}>View Details</Link>
         </Button>
       </CardFooter>
     </Card>
