@@ -20,6 +20,7 @@ const ProtectedRoute = ({ element, requiredRole }) => {
     return <Navigate to="/login" replace />;
   }
 
+
   if (requiredRole && user.role !== requiredRole) {
     return <Navigate to="/" replace />;
   }

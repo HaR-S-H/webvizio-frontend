@@ -44,7 +44,6 @@ export const studentAuthApi = {
     } catch (error) {
       console.error('Error in login student:', error);
       toast.error(error.response?.data?.message || 'Failed to login student');
-      return [];
     }
   },
 

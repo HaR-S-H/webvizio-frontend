@@ -5,7 +5,7 @@ import { formatDate, isTestActive, isTestPast, isTestUpcoming } from "@/lib/util
 import { Link } from "react-router-dom";
 
 
-export function StudentTestCard({ test, submission}) {
+export function StudentTestCardSuccess({ test, submission}) {
   
    
     
@@ -17,13 +17,13 @@ export function StudentTestCard({ test, submission}) {
   if (submission) {
     statusBadge = <Badge>Submitted</Badge>;
     buttonText = "View Submission";
-  } else if (isTestActive(test)) {
+  } else if (isTestActive(test.testId)) {
     statusBadge = <Badge className="bg-green-500">Active</Badge>;
     buttonText = "Take Test";
-  } else if (isTestUpcoming(test)) {
+  } else if (isTestUpcoming(test.testId)) {
     statusBadge = <Badge variant="outline" className="text-blue-500 border-blue-500">Upcoming</Badge>;
     buttonDisabled = true;
-  } else if (isTestPast(test)) {
+  } else if (isTestPast(test.testId)) {
     statusBadge = <Badge variant="outline" className="text-gray-500">Missed</Badge>;
     buttonDisabled = true;
   }
@@ -33,8 +33,8 @@ export function StudentTestCard({ test, submission}) {
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-xl font-semibold">{test.name}</CardTitle>
-            <CardDescription>{test.course}</CardDescription>
+            <CardTitle className="text-xl font-semibold">{test.testId.name}</CardTitle>
+            <CardDescription>{test.testId.course}</CardDescription>
           </div>
           {statusBadge}
         </div>
@@ -43,19 +43,19 @@ export function StudentTestCard({ test, submission}) {
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div>
             <div className="text-muted-foreground">Language</div>
-            <div className="font-medium">{test?.language?.toUpperCase()}</div>
+            <div className="font-medium">{test.testId.language.toUpperCase()}</div>
           </div>
           <div>
             <div className="text-muted-foreground">Max Marks</div>
-            <div className="font-medium">{test.maxMarks}</div>
+            <div className="font-medium">{test.testId.maxMarks }</div>
           </div>
           <div>
             <div className="text-muted-foreground">Start Time</div>
-            <div className="font-medium">{formatDate(test.startingTime)}</div>
+            <div className="font-medium">{formatDate(test.testId.startingTime)}</div>
           </div>
           <div>
             <div className="text-muted-foreground">End Time</div>
-            <div className="font-medium">{formatDate(test.endingTime)}</div>
+            <div className="font-medium">{formatDate(test.testId.endingTime)}</div>
           </div>
         </div>
         
@@ -67,7 +67,7 @@ export function StudentTestCard({ test, submission}) {
                 {submission.plagrism 
                   ? "0" 
                   : submission.marksObtained
-                } / {test.maxMarks}
+                } / {test.testId.maxMarks}
               </span>
             </div>
             {submission.plagiarism && (
@@ -85,7 +85,7 @@ export function StudentTestCard({ test, submission}) {
           className="w-full"
         >
           {!buttonDisabled ? (
-            <Link to={`/student/tests/${test._id}`}>{buttonText}</Link>
+            <Link to={`/student/tests/success/${test.testId._id}`}>{buttonText}</Link>
           ) : (
             <span>{buttonText}</span>
           )}

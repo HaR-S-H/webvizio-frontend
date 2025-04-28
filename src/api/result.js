@@ -10,7 +10,6 @@ export const resultApi = {
       
       const response = await api.get(`/result/${testId}`);
       const marks = response.data?.data?.result?.marks;
-      console.log(response.data?.data?.result?.marks);
       
       // Always make sure it's an array
       return Array.isArray(marks) ? marks : [];

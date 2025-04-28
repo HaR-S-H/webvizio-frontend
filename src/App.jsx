@@ -14,7 +14,8 @@ import TestDetail from "./pages/teacher/TestDetail";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentTestDetail from "./pages/student/TestDetail";
 import NotFound from "./pages/NotFound";
-
+import { StudentTestProvider } from "./context/StudentContext";
+import StudentTestDetailSuccess from "./pages/student/TestDetailSuccess";
 const queryClient = new QueryClient();
 
 
@@ -22,6 +23,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TestProvider>
+        <StudentTestProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -46,6 +48,10 @@ const App = () => (
                 element={<ProtectedRoute element={<StudentDashboard />} requiredRole="student" />}
               />
               <Route
+                path="/student/tests/success/:testId"
+                element={<ProtectedRoute element={<StudentTestDetailSuccess />} requiredRole="student" />}
+              />
+              <Route
                 path="/student/tests/:testId"
                 element={<ProtectedRoute element={<StudentTestDetail />} requiredRole="student" />}
               />
@@ -54,6 +60,7 @@ const App = () => (
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
+        </StudentTestProvider>
       </TestProvider>
     </AuthProvider>
   </QueryClientProvider>

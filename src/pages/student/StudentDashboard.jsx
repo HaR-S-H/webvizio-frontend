@@ -1,31 +1,63 @@
 
+import { studentTestApi } from "@/api/test";
 import { Layout } from "@/components/Layout";
 import { StudentTestCard } from "@/components/student/StudentTestCard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
-import { tests, testSubmissions } from "@/lib/dummy-data";
 import { AlertCircle } from "lucide-react";
-
+import { useEffect, useState } from "react";
+import { useStudentTests } from "@/context/StudentContext";
+import { StudentTestCardSuccess } from "@/components/student/StudentTestCardSuccess";
 export default function StudentDashboard() {
-  const { user } = useAuth();
-  
+    const { user } = useAuth();
+    const { tests, setTests, submittedTests, setSubmittedTests } = useStudentTests();
+    const [loading, setLoading] = useState(true);
+   useEffect(() => {
+       async function fetchStudentData() {
+         try {
+             const response = await studentTestApi.getAllTests(); // Fetch the teacher's data from the API
+   
+           if (response.statusCode === 200) {
+               setTests(response.data.student.ActiveTests);
+           }
+         } catch (error) {
+           console.error("Error fetching teacher data", error);
+         } finally {
+           setLoading(false); // Turn off loading state
+         }
+       }
+   
+       fetchStudentData();
+   }, []);
+   useEffect(() => {
+    async function getSubmitTest() {
+      try {
+          const response = await studentTestApi.getsubmittedTests(); // Fetch the teacher's data from the API
+
+        if (response.statusCode === 200) {
+            setSubmittedTests(response.data.marks.marks);
+          }
+      } catch (error) {
+        console.error("Error fetching teacher data", error);
+      } finally {
+        setLoading(false); // Turn off loading state
+      }
+    }
+
+    getSubmitTest();
+}, []);
+
+if (loading) return <div>Loading...</div>;
   // Get submissions for this student
-  const userSubmissions = testSubmissions.filter(sub => sub.studentId === user?.id);
+    const userSubmissions =submittedTests
   
   // Get active tests (not past, not submitted)
-  const activeTests = tests.filter(test => {
-    const now = new Date();
-    const endTime = new Date(test.endTime);
-    const isSubmitted = userSubmissions.some(sub => sub.testId === test.id);
-    return now <= endTime && !isSubmitted;
-  });
+    const activeTests = tests;
   
   // Get submitted tests
-  const submittedTests = tests.filter(test => {
-    return userSubmissions.some(sub => sub.testId === test.id);
-  });
+    // const submittedTests = testSubmissions;
   
   return (
     <Layout>
@@ -107,9 +139,9 @@ export default function StudentDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {userSubmissions.length > 0 
-                  ? `${Math.round((userSubmissions.filter(sub => !sub.plagiarismDetected)
-                      .reduce((sum, sub) => sum + sub.marks, 0) / userSubmissions.length) * 10) / 10}%`
+                {userSubmissions?.length > 0 
+                  ? `${Math.round((userSubmissions.filter(sub => !sub.plagrism)
+                      .reduce((sum, sub) => sum + sub.marksObtained, 0) / userSubmissions.length) * 10) / 10}%`
                   : "N/A"}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -129,7 +161,7 @@ export default function StudentDashboard() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {activeTests.length > 0 ? (
                 activeTests.map(test => (
-                  <StudentTestCard key={test.id} test={test} />
+                  <StudentTestCard key={test._id} test={test} />
                 ))
               ) : (
                 <div className="col-span-3 text-center py-10">
@@ -139,15 +171,16 @@ export default function StudentDashboard() {
               )}
             </div>
           </TabsContent>
+        
           
           <TabsContent value="submitted" className="space-y-4">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {submittedTests.length > 0 ? (
+              {submittedTests?.length > 0 ? (
                 submittedTests.map(test => {
-                  const submission = userSubmissions.find(sub => sub.testId === test.id);
+                    const submission = test;
                   return (
-                    <StudentTestCard 
-                      key={test.id} 
+                    <StudentTestCardSuccess
+                      key={test._id} 
                       test={test} 
                       submission={submission}
                     />
@@ -163,7 +196,7 @@ export default function StudentDashboard() {
           </TabsContent>
         </Tabs>
         
-        {userSubmissions.some(sub => sub.plagiarismDetected) && (
+        {userSubmissions.some(sub => sub.plagrism[0]?.detected) && (
           <Card className="border-destructive">
             <CardHeader>
               <CardTitle className="text-destructive flex items-center gap-2">
@@ -177,17 +210,17 @@ export default function StudentDashboard() {
             <CardContent>
               <div className="space-y-2">
                 {userSubmissions
-                  .filter(sub => sub.plagiarismDetected)
+                  .filter(sub => sub.plagrism)
                   .map(sub => {
-                    const testInfo = tests.find(t => t.id === sub.testId);
+                    const testInfo = submittedTests.find(t => t.testId._id === sub.testId._id);
                     return (
-                      <div key={sub.id} className="flex justify-between items-center border-b pb-2">
+                      <div key={sub.testId._id} className="flex justify-between items-center border-b pb-2">
                         <div>
-                          <p className="font-medium">{testInfo?.name}</p>
-                          <p className="text-sm text-muted-foreground">{testInfo?.course}</p>
+                          <p className="font-medium">{testInfo?.testId?.name}</p>
+                          <p className="text-sm text-muted-foreground">{testInfo?.testId?.course}</p>
                         </div>
                         <Badge variant="destructive">
-                          Plagiarism detected with {sub.plagiarismWithStudentName}
+                          Plagiarism detected with {sub?.plagrism[0]?.detected?sub?.plagrism[0]?.studentId?.name:"No one"}
                         </Badge>
                       </div>
                     );

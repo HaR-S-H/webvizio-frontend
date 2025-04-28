@@ -20,22 +20,22 @@ export const formatDate = (dateString) => {
 // Check if a test is active based on current time
 export const isTestActive = (test) => {
   const now = new Date()
-  const startTime = new Date(test.startTime)
-  const endTime = new Date(test.endTime)
+  const startTime = new Date(test.startingTime)
+  const endTime = new Date(test.endingTime)
   return now >= startTime && now <= endTime
 }
 
 // Check if a test is upcoming based on current time
 export const isTestUpcoming = (test) => {
   const now = new Date()
-  const startTime = new Date(test.startTime)
+  const startTime = new Date(test.startingTime)
   return now < startTime
 }
 
 // Check if a test is past based on current time
 export const isTestPast = (test) => {
   const now = new Date()
-  const endTime = new Date(test.endTime)
+  const endTime = new Date(test.endingTime)
   return now > endTime
 }
 
@@ -44,12 +44,12 @@ export const filterSubmissionsBySection = (submissions, section) => {
   if (!section || section === "All") {
     return submissions
   }
-  return submissions.filter(submission => submission.section === section)
+  return submissions.filter(submission => submission.studentId.section === section)
 }
 
 // Get plagiarism submissions
 export const getPlagiarismSubmissions = (submissions) => {
-  return submissions.filter(submission => submission.plagiarismDetected)
+  return submissions.filter(submission => submission.plagrism[0].detected)
 }
 
 // Convert submissions to CSV for download
@@ -65,13 +65,13 @@ export const submissionsToCSV = (submissions) => {
   ]
   
   const rows = submissions.map(submission => [
-    submission.studentName,
-    submission.rollNo,
-    submission.section,
-    submission.marks.toString(),
-    submission.submittedAt,
-    submission.plagiarismDetected ? "Yes" : "No",
-    submission.plagiarismDetected ? submission.plagiarismWithStudentName : ""
+    submission.studentId.name,
+    submission.studentId.rollNo,
+    submission.studentId.section,
+    submission.marksObtained.toString(),
+    submission.submittedAt || new Date(),
+    submission.plagrism[0].detected ? "Yes" : "No",
+    submission.plagrism[0].detected ? submission.plagrism[0].studentId.name : ""
   ])
   
   return [

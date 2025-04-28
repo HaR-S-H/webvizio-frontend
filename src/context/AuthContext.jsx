@@ -11,47 +11,43 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check if user is already logged in on page load
-    const token = Cookies.get("token"); // Retrieve token from cookies
+    const token = Cookies.get("token");
     if (token) {
       const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (storedUser) {
-        setUser(storedUser); // Set user state if token and user data exist
-      }
+      console.log(storedUser);      
+      setUser(storedUser);
     }
-    setLoading(false); // Stop loading once checked
+    setLoading(false);
   }, []);
 
   const login = async (email, password, role) => {
     try {
       let userData;
-
-      // Use the correct auth API based on role
+      
       if (role === "teacher") {
-        userData = await teacherAuthApi.login(email, password); // Changed signup to login
+        // Use your teacherAuthApi for teacher login
+        userData = await teacherAuthApi.signup(email, password);
       } else {
-        userData = await studentAuthApi.login(email, password); // Changed signup to login
+        // Use your studentAuthApi for student login
+        userData = await studentAuthApi.signup(email, password);
       }
-
+      
       if (userData) {
-        // Store token in cookies (expires in 7 days)
-        Cookies.set("token", userData.token, { expires: 7 });
-
-        // Store user data in localStorage
+        // Store user data with role information
         const userToStore = {
           ...userData,
-          role,
+          role
         };
+        
         localStorage.setItem("user", JSON.stringify(userToStore));
-
-        setUser(userToStore); // Set the user state
-        toast.success(`Logged in successfully as ${role}`);
+        setUser(userToStore);
+        // toast.success(`Logged in successfully as ${role}`);
         return true;
       }
-      toast.error(`Login failed for ${role}`);
       return false;
     } catch (error) {
       console.error("Login error:", error);
-      toast.error(`Failed to login as ${role}`);
+      // toast.error(`Failed to login as ${role}`);
       return false;
     }
   };
@@ -66,18 +62,18 @@ export const AuthProvider = ({ children }) => {
           await studentAuthApi.logout();
         }
       }
-
-      // Clear stored data on logout
+      
+      // Clear stored data
       Cookies.remove("token");
       localStorage.removeItem("user");
       setUser(null);
-      toast.success("Logged out successfully");
+      // toast.success("Logged out successfully");
       return true;
     } catch (error) {
       console.error("Logout error:", error);
-      toast.error("Failed to logout properly");
-
-      // Still clear local data even if the API call fails
+      // toast.error("Failed to logout properly");
+      
+      // Still clear local data even if API call fails
       Cookies.remove("token");
       localStorage.removeItem("user");
       setUser(null);
@@ -99,6 +95,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-
-

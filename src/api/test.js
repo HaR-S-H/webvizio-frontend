@@ -100,3 +100,45 @@ export const testApi = {
     }
   }
 };
+export const studentTestApi = {
+ 
+  
+  async getAllTests() {
+    try {
+      await delay(300); // Small delay to show loading states
+      
+      const response = await api.get('/test/student');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching tests:', error);
+      throw error;
+    }
+  },
+
+    async getsubmittedTests() {
+        try {
+            await delay(300); // Small delay to show loading states
+            
+            const response = await api.get('/marks');
+            return response.data;
+          } catch (error) {
+            console.error('Error fetching tests:', error);
+            throw error;
+          }
+    },
+    async submitTest(testId,githubLink) {
+        try {
+            await delay(300); // Small delay to show loading states
+            
+            const response = await api.post('/test/student',{testId,githubLink});
+            return response.data;
+          } catch (error) {
+            console.error('Error fetching tests:', error);
+            const errorMessage = error.response?.data?.message || 'Failed to submit test';
+             toast.error(errorMessage);
+            throw error;
+          }
+    }
+    
+};
+

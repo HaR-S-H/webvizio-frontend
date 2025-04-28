@@ -10,7 +10,6 @@ import { FileDown } from "lucide-react";
 export function TestResults({ submissions }) {
   const [selectedSection, setSelectedSection] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-
   // Early return if no submissions
   if (!submissions || submissions.length === 0) {
     return (
@@ -21,13 +20,13 @@ export function TestResults({ submissions }) {
   }
 
   // Get unique sections
-  const sections = ["All", ...new Set(submissions.map(sub => sub.section))];
+  const sections = ["All", ...new Set(submissions.map(sub => sub.studentId.section))];
 
   // Filter submissions based on section and search query
   const filteredSubmissions = filterSubmissionsBySection(
     submissions.filter(sub => 
-      sub.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.rollNo.toLowerCase().includes(searchQuery.toLowerCase())
+      sub.studentId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.studentId.rollNo.toLowerCase().includes(searchQuery.toLowerCase())
     ),
     selectedSection
   );
@@ -108,17 +107,17 @@ export function TestResults({ submissions }) {
           <TableBody>
             {filteredSubmissions.length > 0 ? (
               filteredSubmissions.map((submission) => (
-                <TableRow key={submission.id}>
-                  <TableCell className="font-medium">{submission.studentName}</TableCell>
-                  <TableCell>{submission.rollNo}</TableCell>
-                  <TableCell>Section {submission.section}</TableCell>
-                  <TableCell>{submission.marks}</TableCell>
+                <TableRow key={submission.studentId._id}>
+                  <TableCell className="font-medium">{submission.studentId.name}</TableCell>
+                  <TableCell>{submission.studentId.rollNo}</TableCell>
+                  <TableCell>Section {submission.studentId.section}</TableCell>
+                  <TableCell>{submission.marksObtained}</TableCell>
                   <TableCell>
-                    {submission.plagiarismDetected ? (
+                    {submission.plagrism[0]?.detected ? (
                       <div className="flex flex-col gap-1">
                         <Badge variant="destructive">Plagiarism Detected</Badge>
                         <span className="text-xs text-muted-foreground">
-                          With: {submission.plagiarismWithStudentName}
+                          With: {submission.plagrism[0].studentId.name}
                         </span>
                       </div>
                     ) : (
@@ -128,7 +127,7 @@ export function TestResults({ submissions }) {
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {new Date(submission.submittedAt).toLocaleString()}
+                    {new Date(submission.submittedAt || new Date()).toLocaleString()}
                   </TableCell>
                 </TableRow>
               ))

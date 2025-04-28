@@ -51,7 +51,7 @@ export function TestSubmissionForm({ test, onSuccess }) {
         description: "Your test has been submitted for evaluation.",
         variant: "default",
       });
-      onSuccess();
+      onSuccess(test._id,repoUrl);
     }, 1500);
   };
 
@@ -76,21 +76,21 @@ export function TestSubmissionForm({ test, onSuccess }) {
             </div>
             <div>
               <div className="text-muted-foreground">Start Time</div>
-              <div className="font-medium">{formatDate(test.startTime)}</div>
+              <div className="font-medium">{formatDate(test.startingTime)}</div>
             </div>
             <div>
               <div className="text-muted-foreground">End Time</div>
-              <div className="font-medium">{formatDate(test.endTime)}</div>
+              <div className="font-medium">{formatDate(test.endingTime)}</div>
             </div>
           </div>
           
-          {(test.instructionsPdfUrl || test.videoUrl) && (
+          {(test.pdfUrl || test.videoUrl) && (
             <div className="space-y-2">
               <h3 className="font-medium">Instructions</h3>
               <div className="flex flex-wrap gap-2">
-                {test.instructionsPdfUrl && (
+                {test.pdfUrl && (
                   <Button variant="outline" size="sm" asChild>
-                    <a href={test.instructionsPdfUrl} target="_blank" rel="noopener noreferrer">
+                    <a href={test.pdfUrl} target="_blank" rel="noopener noreferrer">
                       View PDF Instructions
                       <ExternalLink size={14} className="ml-1" />
                     </a>

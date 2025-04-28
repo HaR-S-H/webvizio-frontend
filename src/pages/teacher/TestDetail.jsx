@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TestResults } from "@/components/teacher/TestResults";
 import { formatDate, isTestActive, isTestPast, isTestUpcoming } from "@/lib/utils";
-import { testSubmissions } from "@/lib/dummy-data";
 import { AlertCircle, Check, Clock } from "lucide-react";
 import { useTests } from '@/context/TestContext';
 import { useEffect, useState } from "react";
@@ -20,7 +19,6 @@ export default function TestDetail() {
   if (!test) {
     return <Navigate to="/teacher" replace />;
   }
-console.log(test);
 
   // Use test.testId to access the test data
   const testData = test.testId;
@@ -28,8 +26,10 @@ console.log(test);
     const fetchResult = async () => {
       try {
         const response = await resultApi.getResult(testData._id);
+        
         setSubmissions(response);
-        console.log(response);
+
+        
       } catch (error) {
         console.error("Failed to fetch results:", error);
       }
@@ -212,16 +212,7 @@ console.log(test);
                     );
                   })}
                 </div>
-                {Array.from(new Set((submissions ?? []).map(s => s.studentId.section))).map(section => {
-                  const sectionCount = (submissions ?? []).filter(s => s.studentId.section === section).length;
-                  return (
-                    <div key={section} className="flex justify-between items-center text-sm">
-                      <span>Section {section || 0}</span>
-                      <Badge variant="outline">{sectionCount || 0} students</Badge>
-                    </div>
-                  );
-                })}
-
+             
               </div>
             </CardContent>
           </Card>
@@ -235,7 +226,7 @@ console.log(test);
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <TestResults submissions={submissions || []} />
+            <TestResults  submissions={submissions || []} />
           </CardContent>
         </Card>
       </div>
