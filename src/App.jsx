@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { TestProvider } from './context/TestContext';
 import ProtectedRoute from "./components/ProtectedRoute";
 // Pages
 import Index from "./pages";
@@ -20,40 +21,44 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
+      <TestProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
 
-            {/* Teacher routes */}
-            <Route
-              path="/teacher"
-              element={<ProtectedRoute element={<TeacherDashboard />} requiredRole="teacher" />}
-            />
-            <Route
-              path="/teacher/tests/:testId"
-              element={<ProtectedRoute element={<TestDetail />} requiredRole="teacher" />}
-            />
+              {/* Teacher routes */}
+              <Route
+                path="/teacher"
+                element={<ProtectedRoute element={<TeacherDashboard />} requiredRole="teacher" />}
+              />
+              <Route
+                path="/teacher/tests/:testId"
+                element={<ProtectedRoute element={<TestDetail />} requiredRole="teacher" />}
+              />
 
-            {/* Student routes */}
-            <Route
-              path="/student"
-              element={<ProtectedRoute element={<StudentDashboard />} requiredRole="student" />}
-            />
-            <Route
-              path="/student/tests/:testId"
-              element={<ProtectedRoute element={<StudentTestDetail />} requiredRole="student" />}
-            />
+              {/* Student routes */}
+              <Route
+                path="/student"
+                element={<ProtectedRoute element={<StudentDashboard />} requiredRole="student" />}
+              />
+              <Route
+                path="/student/tests/:testId"
+                element={<ProtectedRoute element={<StudentTestDetail />} requiredRole="student" />}
+              />
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </BrowserRouter>
-      </TooltipProvider>
+        </TooltipProvider>
+      </TestProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
 
 export default App;
+
+

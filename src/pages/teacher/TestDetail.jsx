@@ -1,4 +1,3 @@
-
 import { useParams, Navigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -9,21 +8,41 @@ import { TestResults } from "@/components/teacher/TestResults";
 import { formatDate, isTestActive, isTestPast, isTestUpcoming } from "@/lib/utils";
 import { testSubmissions } from "@/lib/dummy-data";
 import { AlertCircle, Check, Clock } from "lucide-react";
-// import { useTest } from "@/context/testContext";
+import { useTests } from '@/context/TestContext';
+import { useEffect, useState } from "react";
+import { resultApi } from "@/api/result";
 export default function TestDetail() {
   const { testId } = useParams();
-  // const { tests } = useTest(); // Get the tests from the context
-  const test = tests.find(t => t._id === testId);
+  const { tests } = useTests();
+  const [submissions, setSubmissions] = useState([]);
+  const test = tests.find(t => t.testId?._id === testId);
+  
   if (!test) {
     return <Navigate to="/teacher" replace />;
   }
+console.log(test);
+
+  // Use test.testId to access the test data
+  const testData = test.testId;
+  useEffect(() => {
+    const fetchResult = async () => {
+      try {
+        const response = await resultApi.getResult(testData._id);
+        setSubmissions(response);
+        console.log(response);
+      } catch (error) {
+        console.error("Failed to fetch results:", error);
+      }
+    };
+  
+    fetchResult();
+  }, [testData._id]);
   
   // Get submissions for this test
-  const submissions = testSubmissions.filter(submission => submission.testId === test.id);
   
   // Determine test status
   let statusComponent;
-  if (isTestActive(test)) {
+  if (isTestActive(testData)) {
     statusComponent = (
       <Alert className="border-green-500">
         <Check className="h-4 w-4 text-green-500" />
@@ -33,23 +52,23 @@ export default function TestDetail() {
         </AlertDescription>
       </Alert>
     );
-  } else if (isTestUpcoming(test)) {
+  } else if (isTestUpcoming(testData)) {
     statusComponent = (
       <Alert>
         <Clock className="h-4 w-4" />
         <AlertTitle>Upcoming Assessment</AlertTitle>
         <AlertDescription>
-          This assessment will be available to students starting at {formatDate(test.startTime)}.
+          This assessment will be available to students starting at {formatDate(testData.startingTime)}.
         </AlertDescription>
       </Alert>
     );
-  } else if (isTestPast(test)) {
+  } else if (isTestPast(testData)) {
     statusComponent = (
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Completed Assessment</AlertTitle>
         <AlertDescription>
-          This assessment ended at {formatDate(test.endTime)}.
+          This assessment ended at {formatDate(testData.endingTime)}.
         </AlertDescription>
       </Alert>
     );
@@ -64,11 +83,11 @@ export default function TestDetail() {
         
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{test.name}</h1>
-            <p className="text-muted-foreground">{test.course}</p>
+            <h1 className="text-3xl font-bold tracking-tight">{testData.name}</h1>
+            <p className="text-muted-foreground">{testData.course}</p>
           </div>
           <Badge className="text-sm py-1">
-            {test.language === "react" ? "React" : "HTML"}
+            {testData.language === "react" ? "React" : "HTML"}
           </Badge>
         </div>
         
@@ -85,41 +104,41 @@ export default function TestDetail() {
                 <div>
                   <h3 className="text-sm font-medium">Repository URL</h3>
                   <p className="text-sm text-muted-foreground break-all">
-                    <a href={test.repoUrl} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">
-                      {test.repoUrl}
+                    <a href={test.githubLink} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">
+                      {test.githubLink}
                     </a>
                   </p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium">Max Marks</h3>
-                  <p className="text-sm text-muted-foreground">{test.maxMarks}</p>
+                  <p className="text-sm text-muted-foreground">{testData.maxMarks}</p>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-sm font-medium">Start Time</h3>
-                  <p className="text-sm text-muted-foreground">{formatDate(test.startTime)}</p>
+                  <p className="text-sm text-muted-foreground">{formatDate(testData.startingTime)}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium">End Time</h3>
-                  <p className="text-sm text-muted-foreground">{formatDate(test.endTime)}</p>
+                  <p className="text-sm text-muted-foreground">{formatDate(testData.endingTime)}</p>
                 </div>
               </div>
               
               <div>
                 <h3 className="text-sm font-medium">Resources</h3>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {test.instructionsPdfUrl && (
+                  {testData.pdfUrl && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={test.instructionsPdfUrl} target="_blank" rel="noopener noreferrer">
+                      <a href={testData.pdfUrl} target="_blank" rel="noopener noreferrer">
                         View Instructions PDF
                       </a>
                     </Button>
                   )}
-                  {test.videoUrl && (
+                  {testData.videoUrl && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={test.videoUrl} target="_blank" rel="noopener noreferrer">
+                      <a href={testData.videoUrl} target="_blank" rel="noopener noreferrer">
                         Watch Instructions Video
                       </a>
                     </Button>
@@ -130,7 +149,7 @@ export default function TestDetail() {
               <div>
                 <h3 className="text-sm font-medium">Tips for Students</h3>
                 <ul className="list-disc pl-5 mt-1">
-                  {test.tips.map((tip, index) => (
+                  {testData.tips.map((tip, index) => (
                     <li key={index} className="text-sm text-muted-foreground">
                       {tip}
                     </li>
@@ -148,12 +167,12 @@ export default function TestDetail() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-muted p-4 rounded-md text-center">
-                  <div className="text-2xl font-bold">{submissions.length}</div>
+                  <div className="text-2xl font-bold">{submissions?.length || 0}</div>
                   <p className="text-sm text-muted-foreground">Total Submissions</p>
                 </div>
                 <div className="bg-muted p-4 rounded-md text-center">
                   <div className="text-2xl font-bold">
-                    {submissions.filter(s => s.plagiarismDetected).length}
+                  {Array.isArray(submissions) ? submissions.filter(s => s.plagiarism).length : 0}
                   </div>
                   <p className="text-sm text-muted-foreground">Plagiarism Cases</p>
                 </div>
@@ -166,16 +185,16 @@ export default function TestDetail() {
                     <div 
                       className="bg-primary h-2.5 rounded-full" 
                       style={{ 
-                        width: `${submissions.length > 0 
-                          ? (submissions.reduce((sum, s) => sum + s.marks, 0) / submissions.length) / test.maxMarks * 100 
+                        width: `${submissions?.length > 0 
+                          ? (submissions?.reduce((sum, s) => sum + s.marksObtained, 0) / submissions.length) / testData.maxMarks * 100 
                           : 0}%` 
                       }}
                     ></div>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {submissions.length > 0 
-                      ? Math.round((submissions.reduce((sum, s) => sum + s.marks, 0) / submissions.length) * 10) / 10
-                      : 0} / {test.maxMarks}
+                    {submissions?.length > 0 
+                      ? Math.round((submissions?.reduce((sum, s) => sum + s.marksObtained, 0) / submissions.length) * 10) / 10
+                      : 0} / {testData.maxMarks}
                   </span>
                 </div>
               </div>
@@ -183,16 +202,26 @@ export default function TestDetail() {
               <div className="bg-muted p-4 rounded-md">
                 <h3 className="text-sm font-medium mb-1">Section Distribution</h3>
                 <div className="space-y-1">
-                  {Array.from(new Set(submissions.map(s => s.section))).map(section => {
-                    const sectionCount = submissions.filter(s => s.section === section).length;
+                  {Array.from(new Set(submissions?.map(s => s.studentId.section))).map(section => {
+                    const sectionCount = submissions?.filter(s => s.studentId.section === section).length;
                     return (
                       <div key={section} className="flex justify-between items-center text-sm">
-                        <span>Section {section}</span>
-                        <Badge variant="outline">{sectionCount} students</Badge>
+                        <span>Section {section || 0}</span>
+                        <Badge variant="outline">{sectionCount||0} students</Badge>
                       </div>
                     );
                   })}
                 </div>
+                {Array.from(new Set((submissions ?? []).map(s => s.studentId.section))).map(section => {
+                  const sectionCount = (submissions ?? []).filter(s => s.studentId.section === section).length;
+                  return (
+                    <div key={section} className="flex justify-between items-center text-sm">
+                      <span>Section {section || 0}</span>
+                      <Badge variant="outline">{sectionCount || 0} students</Badge>
+                    </div>
+                  );
+                })}
+
               </div>
             </CardContent>
           </Card>
@@ -206,7 +235,7 @@ export default function TestDetail() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <TestResults submissions={submissions} />
+            <TestResults submissions={submissions || []} />
           </CardContent>
         </Card>
       </div>

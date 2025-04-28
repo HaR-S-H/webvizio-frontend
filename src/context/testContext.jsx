@@ -1,28 +1,21 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import Cookies from "js-cookie";
+import { createContext, useContext, useState } from 'react';
 
-const TestContext = createContext(undefined);
+const TestContext = createContext();
 
-export const TestProvider = ({ children }) => {
-  const [tests, setTests] = useState(null);
-  const [loading, setLoading] = useState(true);
+export function TestProvider({ children }) {
+  const [tests, setTests] = useState([]);
 
-  
-
-  
-
- 
   return (
-    <TestContext.Provider value={{tests,setTests}}>
+    <TestContext.Provider value={{ tests, setTests }}>
       {children}
     </TestContext.Provider>
   );
-};
+}
 
-export const useTest = () => {
+export function useTests() {
   const context = useContext(TestContext);
-  if (context === undefined) {
-    throw new Error("useTest must be used within an TestProvider");
+  if (!context) {
+    throw new Error('useTests must be used within a TestProvider');
   }
   return context;
-};
+}

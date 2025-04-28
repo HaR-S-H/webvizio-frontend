@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState } from "react"; 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,15 +7,22 @@ import { Badge } from "@/components/ui/badge";
 import { downloadCSV, filterSubmissionsBySection, getPlagiarismSubmissions, submissionsToCSV } from "@/lib/utils";
 import { FileDown } from "lucide-react";
 
-
-
 export function TestResults({ submissions }) {
   const [selectedSection, setSelectedSection] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  
+
+  // Early return if no submissions
+  if (!submissions || submissions.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground text-center">No submissions available.</p>
+      </div>
+    );
+  }
+
   // Get unique sections
   const sections = ["All", ...new Set(submissions.map(sub => sub.section))];
-  
+
   // Filter submissions based on section and search query
   const filteredSubmissions = filterSubmissionsBySection(
     submissions.filter(sub => 
@@ -25,24 +31,24 @@ export function TestResults({ submissions }) {
     ),
     selectedSection
   );
-  
+
   // Handle section change
   const handleSectionChange = (value) => {
     setSelectedSection(value);
   };
-  
+
   // Handle downloading results as CSV
   const handleDownloadResults = () => {
     const data = submissionsToCSV(filteredSubmissions);
     downloadCSV(data, `results-${selectedSection !== "All" ? selectedSection : "all"}.csv`);
   };
-  
+
   // Handle downloading plagiarism report
   const handleDownloadPlagiarismReport = () => {
     const plagiarismData = submissionsToCSV(getPlagiarismSubmissions(submissions));
     downloadCSV(plagiarismData, "plagiarism-report.csv");
   };
-  
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -66,19 +72,27 @@ export function TestResults({ submissions }) {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleDownloadResults}>
+          <Button
+            variant="outline"
+            onClick={handleDownloadResults}
+            disabled={filteredSubmissions.length === 0}
+          >
             <FileDown size={16} className="mr-2" />
             Download Results
           </Button>
-          <Button variant="outline" onClick={handleDownloadPlagiarismReport}>
+          <Button
+            variant="outline"
+            onClick={handleDownloadPlagiarismReport}
+            disabled={submissions.length === 0}
+          >
             <FileDown size={16} className="mr-2" />
             Plagiarism Report
           </Button>
         </div>
       </div>
-      
+
       <div className="rounded-md border overflow-hidden">
         <Table>
           <TableHeader>
@@ -108,7 +122,9 @@ export function TestResults({ submissions }) {
                         </span>
                       </div>
                     ) : (
-                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">Completed</Badge>
+                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                        Completed
+                      </Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">

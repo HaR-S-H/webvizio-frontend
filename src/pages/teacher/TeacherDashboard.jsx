@@ -7,8 +7,10 @@ import { TestCard } from "@/components/teacher/TestCard";
 import { TestCreationForm } from "@/components/teacher/TestCreationForm";
 import { PlusCircle } from "lucide-react";
 import { testApi } from "@/api/test"; // Import the testApi to fetch data
+import { useTests } from '@/context/TestContext';
 
 export default function TeacherDashboard() {
+  const { setTests ,tests} = useTests();
   const [showTestForm, setShowTestForm] = useState(false);
   const [teacherData, setTeacherData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,10 +19,13 @@ export default function TeacherDashboard() {
     async function fetchTeacherData() {
       try {
         const response = await testApi.getAllTests(); // Fetch the teacher's data from the API
-        console.log(response);
 
         if (response.statusCode === 200) {
           setTeacherData(response.data); // Store data on success
+          // Store tests in context
+          const activeTests = response.data?.teacher?.ActiveTests || [];
+          const pastTests = response.data?.teacher?.oldTests || [];
+          setTests([...activeTests, ...pastTests]);
         }
       } catch (error) {
         console.error("Error fetching teacher data", error);
@@ -30,7 +35,7 @@ export default function TeacherDashboard() {
     }
 
     fetchTeacherData();
-  }, []);
+  }, [setTests]);
 
   if (loading) return <div>Loading...</div>; // Add loading state if data is still being fetched
 //   console.log(teacherData);
@@ -118,14 +123,14 @@ export default function TeacherDashboard() {
               </TabsList>
 
               <TabsContent value="all" className="space-y-4">
-                {activeTests.length === 0 ? (
+                {tests.length === 0 ? (
                   <div className="text-center py-10">
                     <h3 className="text-lg font-medium">No tests created yet</h3>
                     <p className="text-muted-foreground">Create your first test to get started</p>
                   </div>
                 ) : (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {activeTests.map(test => (
+                    {tests.map(test => (
                       <TestCard key={test.testId._id} test={test.testId} />
                     ))}
                   </div>
