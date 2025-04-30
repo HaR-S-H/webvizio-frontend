@@ -61,7 +61,9 @@ export const submissionsToCSV = (submissions) => {
     "Marks",
     "Submitted At",
     "Plagiarism Detected",
-    "Plagiarism With"
+    "Plagiarism With",
+    "Roll No",
+    "Section"
   ]
   
   const rows = submissions.map(submission => [
@@ -71,7 +73,9 @@ export const submissionsToCSV = (submissions) => {
     submission.marksObtained.toString(),
     submission.submittedAt || new Date(),
     submission.plagrism[0].detected ? "Yes" : "No",
-    submission.plagrism[0].detected ? submission.plagrism[0].studentId.name : ""
+    submission.plagrism[0].detected ? submission.plagrism[0].studentId.name : "",
+    submission.plagrism[0].detected ? submission.plagrism[0].studentId.rollNo : "",
+    submission.plagrism[0].detected ? submission.plagrism[0].studentId.section : ""
   ])
   
   return [

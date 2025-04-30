@@ -172,7 +172,7 @@ export default function TestDetail() {
                 </div>
                 <div className="bg-muted p-4 rounded-md text-center">
                   <div className="text-2xl font-bold">
-                  {Array.isArray(submissions) ? submissions.filter(s => s.plagiarism).length : 0}
+                  {Array.isArray(submissions) ? submissions.filter(s => s.plagrism[0].detected).length : 0}
                   </div>
                   <p className="text-sm text-muted-foreground">Plagiarism Cases</p>
                 </div>

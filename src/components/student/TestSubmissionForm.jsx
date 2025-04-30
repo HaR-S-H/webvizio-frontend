@@ -46,12 +46,16 @@ export function TestSubmissionForm({ test, onSuccess }) {
     // Simulate submission process
     setTimeout(() => {
       setIsSubmitting(false);
-      toast({
-        title: "Submission Successful",
-        description: "Your test has been submitted for evaluation.",
-        variant: "default",
+      onSuccess(test._id,repoUrl).then((result) => {
+        toast({
+            title: "Submission Successful",
+            description: "Your test has been submitted for evaluation.",
+            variant: "default",
+          });
+      }).catch((err) => {
+        console.log(err);
+        
       });
-      onSuccess(test._id,repoUrl);
     }, 1500);
   };
 

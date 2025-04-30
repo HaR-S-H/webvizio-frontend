@@ -27,7 +27,7 @@ export function Layout({ children }) {
                   {user.role}
                 </span>
               </div>
-              <Button variant="outline" size="sm" onClick={logout} className="text-white border-white hover:bg-white hover:text-primary">
+              <Button variant="outline" size="sm" onClick={logout} className=" border-white hover:bg-white text-primary">
                 <LogOut size={16} className="mr-2" />
                 Logout
               </Button>

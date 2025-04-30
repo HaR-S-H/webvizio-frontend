@@ -139,8 +139,9 @@ if (loading) return <div>Loading...</div>;
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
+
                 {userSubmissions?.length > 0 
-                  ? `${Math.round((userSubmissions.filter(sub => !sub.plagrism)
+                  ? `${Math.round((userSubmissions.filter(sub => !sub.plagrism[0]?.detected)
                       .reduce((sum, sub) => sum + sub.marksObtained, 0) / userSubmissions.length) * 10) / 10}%`
                   : "N/A"}
               </div>
@@ -210,7 +211,7 @@ if (loading) return <div>Loading...</div>;
             <CardContent>
               <div className="space-y-2">
                 {userSubmissions
-                  .filter(sub => sub.plagrism)
+                  .filter(sub => sub.plagrism[0]?.detected)
                   .map(sub => {
                     const testInfo = submittedTests.find(t => t.testId._id === sub.testId._id);
                     return (

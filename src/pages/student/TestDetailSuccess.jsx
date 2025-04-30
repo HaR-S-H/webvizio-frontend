@@ -140,8 +140,8 @@ export default function StudentTestDetailSuccess() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Plagiarism Detected</AlertTitle>
-                  <AlertDescription>
-                    Your submission was flagged for plagiarism with {existingSubmission?.plagrism[0]?.detected?existingSubmission?.plagrism[0]?.studentId.name:"no one"};
+                  <AlertDescription className={"text-black"}>
+                    Your submission was flagged for plagiarism with {existingSubmission?.plagrism[0]?.detected?existingSubmission?.plagrism[0]?.studentId.name +" section "+ existingSubmission?.plagrism[0]?.studentId.section + " roll no " + existingSubmission?.plagrism[0]?.studentId.rollNo:"no one"}; 
                     As a result, your score has been set to 0.
                   </AlertDescription>
                 </Alert>

@@ -27,6 +27,7 @@ export function StudentTestCardSuccess({ test, submission}) {
     statusBadge = <Badge variant="outline" className="text-gray-500">Missed</Badge>;
     buttonDisabled = true;
   }
+console.log(submission);
 
   return (
     <Card className="hover-card">
@@ -58,13 +59,15 @@ export function StudentTestCardSuccess({ test, submission}) {
             <div className="font-medium">{formatDate(test.testId.endingTime)}</div>
           </div>
         </div>
+    
+    
         
         {submission && (
           <div className="mt-4 p-3 bg-muted rounded-md">
             <div className="flex justify-between">
               <span className="font-medium">Your Score:</span>
               <span className="font-bold">
-                {submission.plagrism 
+                {submission.plagrism[0]?.detected
                   ? "0" 
                   : submission.marksObtained
                 } / {test.testId.maxMarks}
